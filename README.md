@@ -435,3 +435,12 @@ DECISION_EXAMPLES.md  worked input -> rules -> output -> audit examples
 
 Detailed rationale, assumptions and scaling plan: [ARCHITECTURE.md](ARCHITECTURE.md).
 Worked decision traces: [DECISION_EXAMPLES.md](DECISION_EXAMPLES.md).
+
+## Screenshots
+
+| | | |
+|---|---|---|
+| ![Screenshot 1](docs/screenshots/screenshot-01.png) | ![Screenshot 2](docs/screenshots/screenshot-02.png) | ![Screenshot 3](docs/screenshots/screenshot-03.png) |
+| ![Screenshot 4](docs/screenshots/screenshot-04.png) | ![Screenshot 5](docs/screenshots/screenshot-05.png) | ![Screenshot 6](docs/screenshots/screenshot-06.png) |
+| ![Screenshot 7](docs/screenshots/screenshot-07.png) | ![Screenshot 8](docs/screenshots/screenshot-08.png) | ![Screenshot 9](docs/screenshots/screenshot-09.png) |
+| ![Screenshot 10](docs/screenshots/screenshot-10.png) | ![Screenshot 11](docs/screenshots/screenshot-11.png) | ![Screenshot 12](docs/screenshots/screenshot-12.png) |
