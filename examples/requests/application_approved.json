@@ -1,0 +1,15 @@
+{
+  "workflow": "application_approval",
+  "input": {
+    "applicant": {
+      "name": "Ada Lovelace",
+      "email": "ada@example.com",
+      "credit_score": 720,
+      "monthly_income": 4000,
+      "employment_status": "employed"
+    },
+    "requested_amount": 15000,
+    "country": "US",
+    "reference": "APP-DEMO-1"
+  }
+}

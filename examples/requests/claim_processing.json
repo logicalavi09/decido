@@ -1,0 +1,16 @@
+{
+  "workflow": "claim_processing",
+  "input": {
+    "policy_id": "POL-123456",
+    "claim_amount": 5000,
+    "claimant": {
+      "name": "Grace Hopper",
+      "email": "grace@example.com"
+    },
+    "documents": [
+      {"type": "invoice", "reference": "DOC-100"},
+      {"type": "photo", "reference": "DOC-101"}
+    ],
+    "incident_date": "2026-01-10"
+  }
+}

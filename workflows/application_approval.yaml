@@ -1,0 +1,154 @@
+name: application_approval
+version: "1.0.0"
+description: >-
+  Consumer credit application approval. Demonstrates mandatory checks,
+  threshold rules, a fast-track branch and manual review escalation.
+input_schema:
+  type: object
+  additionalProperties: false
+  required: [applicant, requested_amount, country]
+  properties:
+    applicant:
+      type: object
+      additionalProperties: false
+      required: [name, email, credit_score, monthly_income]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        email:
+          type: string
+          pattern: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+        credit_score:
+          type: integer
+          minimum: 300
+          maximum: 850
+        monthly_income:
+          type: number
+          minimum: 0
+        employment_status:
+          type: string
+          enum: [employed, self_employed, student, retired, unemployed]
+    requested_amount:
+      type: number
+      minimum: 100
+      maximum: 500000
+    country:
+      type: string
+      enum: [US, CA, GB, IN]
+    reference:
+      type: string
+      minLength: 1
+retry:
+  workflow_backoff_seconds: 2
+  max_workflow_attempts: 4
+stages:
+  - name: intake
+    description: Validate mandatory eligibility fields before external calls.
+    rules:
+      - id: supported_country
+        description: Lending footprint check
+        severity: high
+        mode: assert
+        condition:
+          field: country
+          op: in
+          value: [US, CA, GB, IN]
+        effect: reject
+        reason: Country is outside the supported lending footprint
+      - id: employment_declared
+        description: Optional field required for a human affordability review
+        severity: low
+        mode: assert
+        condition:
+          field: applicant.employment_status
+          op: exists
+        effect: manual_review
+        reason: Employment status is missing, so affordability cannot be assessed
+
+  - name: credit_check
+    description: Call the simulated credit bureau, then apply score thresholds.
+    dependency:
+      connector: credit_bureau
+      operation: score
+      timeout_ms: 250
+      retry:
+        max_attempts: 3
+        base_delay_ms: 5
+        max_delay_ms: 40
+      failure_policy: retry
+      result:
+        verified: true
+        bureau_score: "$input.applicant.credit_score"
+        provider: sim-credit-bureau
+    rules:
+      - id: bureau_verified
+        description: The bureau must confirm the applicant identity
+        severity: high
+        mode: assert
+        condition:
+          field: dependencies.credit_bureau.verified
+          op: eq
+          value: true
+        effect: retry
+        reason: Credit bureau could not verify the applicant
+      - id: minimum_credit_score
+        severity: high
+        mode: assert
+        condition:
+          field: applicant.credit_score
+          op: gte
+          value: 650
+        effect: reject
+        reason: Credit score is below the 650 minimum
+      - id: premium_fast_track
+        description: Low-risk, low-exposure applications skip affordability review
+        severity: info
+        mode: guard
+        condition:
+          all:
+            - field: applicant.credit_score
+              op: gte
+              value: 780
+            - field: requested_amount
+              op: lte
+              value: 20000
+        effect: branch
+        goto: auto_approval
+        reason: Low-risk premium applicant qualified for fast-track approval
+
+  - name: affordability
+    description: Exposure and income checks feed approval or manual review.
+    rules:
+      - id: exposure_limit
+        severity: high
+        mode: assert
+        condition:
+          field: requested_amount
+          op: lte
+          value: 50000
+        effect: reject
+        reason: Requested amount exceeds the 50,000 unsecured exposure limit
+      - id: income_threshold
+        severity: medium
+        mode: assert
+        condition:
+          field: applicant.monthly_income
+          op: gte
+          value: 1000
+        effect: manual_review
+        reason: Monthly income below 1,000 requires income verification
+      - id: high_value_review
+        severity: medium
+        mode: guard
+        condition:
+          field: requested_amount
+          op: gt
+          value: 25000
+        effect: manual_review
+        reason: Applications above 25,000 require a human credit decision
+
+  - name: auto_approval
+    description: Terminal stage used by both the linear path and fast-track branch.
+    rules: []

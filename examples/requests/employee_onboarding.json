@@ -1,0 +1,16 @@
+{
+  "workflow": "employee_onboarding",
+  "input": {
+    "candidate": {
+      "name": "Alan Turing",
+      "email": "alan@example.com",
+      "role": "engineer",
+      "consent_background_check": true
+    },
+    "start_date": "2026-02-01",
+    "documents": [
+      {"type": "passport", "reference": "ID-900"}
+    ],
+    "equipment_requested": false
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "workflow": "application_approval",
+  "input": {
+    "applicant": {
+      "name": "Katherine Johnson",
+      "email": "kj@example.com",
+      "credit_score": 760,
+      "monthly_income": 6000,
+      "employment_status": "employed"
+    },
+    "requested_amount": 12000,
+    "country": "US",
+    "reference": "APP-DEMO-3"
+  },
+  "simulation": {
+    "faults": {
+      "credit_bureau": "error"
+    }
+  }
+}

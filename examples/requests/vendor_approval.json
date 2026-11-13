@@ -1,0 +1,14 @@
+{
+  "workflow": "vendor_approval",
+  "input": {
+    "vendor": {
+      "name": "Acme Supplies",
+      "tax_id": "ABC12345",
+      "country": "US",
+      "risk_rating": "low",
+      "annual_revenue": 5000000
+    },
+    "contract_value": 50000,
+    "cost_center": "OPS-1"
+  }
+}

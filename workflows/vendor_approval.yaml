@@ -1,0 +1,124 @@
+name: vendor_approval
+version: "1.0.0"
+description: >-
+  Vendor onboarding with tax registry verification and contract-value controls.
+input_schema:
+  type: object
+  additionalProperties: false
+  required: [vendor, contract_value]
+  properties:
+    vendor:
+      type: object
+      additionalProperties: false
+      required: [name, tax_id, country, risk_rating]
+      properties:
+        name:
+          type: string
+          minLength: 2
+        tax_id:
+          type: string
+        country:
+          type: string
+          enum: [US, CA, GB, IN, DE]
+        risk_rating:
+          type: string
+          enum: [low, medium, high]
+        annual_revenue:
+          type: number
+          minimum: 0
+    contract_value:
+      type: number
+      minimum: 1
+    cost_center:
+      type: string
+retry:
+  workflow_backoff_seconds: 2
+  max_workflow_attempts: 3
+stages:
+  - name: screening
+    description: Mandatory supplier screening before registry lookup.
+    rules:
+      - id: tax_id_format
+        severity: high
+        mode: assert
+        condition:
+          field: vendor.tax_id
+          op: matches
+          value: "^[A-Z0-9-]{6,20}$"
+        effect: reject
+        reason: Tax identifier must be 6-20 uppercase alphanumeric characters
+      - id: supported_country
+        severity: high
+        mode: assert
+        condition:
+          field: vendor.country
+          op: in
+          value: [US, CA, GB, IN, DE]
+        effect: reject
+        reason: Vendor country is outside the procurement footprint
+      - id: high_risk_manual
+        severity: medium
+        mode: guard
+        condition:
+          field: vendor.risk_rating
+          op: eq
+          value: high
+        effect: manual_review
+        reason: High-risk vendors require compliance review
+
+  - name: registry_check
+    description: Government tax registry lookup.
+    dependency:
+      connector: tax_registry
+      operation: lookup
+      timeout_ms: 350
+      retry:
+        max_attempts: 3
+        base_delay_ms: 5
+        max_delay_ms: 45
+      failure_policy: manual_review
+      result:
+        registered: true
+        registry_country: "$input.vendor.country"
+        provider: sim-tax-registry
+    rules:
+      - id: tax_registered
+        severity: high
+        mode: assert
+        condition:
+          field: dependencies.tax_registry.registered
+          op: eq
+          value: true
+        effect: reject
+        reason: Tax identifier is not registered
+      - id: registry_country_match
+        severity: medium
+        mode: assert
+        condition:
+          field: dependencies.tax_registry.registry_country
+          op: eq
+          value: "$input.vendor.country"
+        effect: manual_review
+        reason: Registry country does not match the declared country
+
+  - name: contract_review
+    description: Value-based procurement controls.
+    rules:
+      - id: contract_limit
+        severity: high
+        mode: assert
+        condition:
+          field: contract_value
+          op: lte
+          value: 250000
+        effect: reject
+        reason: Contract value exceeds the 250,000 procurement limit
+      - id: significant_contract
+        severity: medium
+        mode: guard
+        condition:
+          field: contract_value
+          op: gt
+          value: 100000
+        effect: manual_review
+        reason: Contracts above 100,000 require finance approval

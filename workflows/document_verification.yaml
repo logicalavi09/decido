@@ -1,0 +1,121 @@
+name: document_verification
+version: "1.0.0"
+description: >-
+  Standalone identity document verification flow. Shows OCR quality thresholds,
+  retry-on-unusable-response and multi-document intake.
+input_schema:
+  type: object
+  additionalProperties: false
+  required: [document, owner]
+  properties:
+    document:
+      type: object
+      additionalProperties: false
+      required: [type, number, expires_on]
+      properties:
+        type:
+          type: string
+          enum: [passport, national_id, driver_license]
+        number:
+          type: string
+          minLength: 4
+          maxLength: 32
+        expires_on:
+          type: string
+          pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        issuing_country:
+          type: string
+    owner:
+      type: object
+      additionalProperties: false
+      required: [name, email]
+      properties:
+        name:
+          type: string
+          minLength: 2
+        email:
+          type: string
+          pattern: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+    file_ref:
+      type: string
+retry:
+  workflow_backoff_seconds: 2
+  max_workflow_attempts: 3
+stages:
+  - name: format
+    description: Deterministic structure checks before OCR.
+    rules:
+      - id: supported_document_type
+        severity: high
+        mode: assert
+        condition:
+          field: document.type
+          op: in
+          value: [passport, national_id, driver_license]
+        effect: reject
+        reason: Document type is not supported
+      - id: number_present
+        severity: high
+        mode: assert
+        condition:
+          field: document.number
+          op: exists
+        effect: reject
+        reason: Document number is mandatory
+      - id: expiry_present
+        severity: high
+        mode: assert
+        condition:
+          field: document.expires_on
+          op: matches
+          value: "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        effect: reject
+        reason: Expiry date must use ISO YYYY-MM-DD format
+
+  - name: ocr
+    description: Simulated OCR / authenticity provider.
+    dependency:
+      connector: ocr_service
+      operation: extract
+      timeout_ms: 300
+      retry:
+        max_attempts: 3
+        base_delay_ms: 5
+        max_delay_ms: 40
+      failure_policy: retry
+      result:
+        quality: 0.93
+        extracted_name: "$input.owner.name"
+        document_number: "$input.document.number"
+        provider: sim-ocr-service
+    rules:
+      - id: ocr_quality
+        severity: medium
+        mode: assert
+        condition:
+          field: dependencies.ocr_service.quality
+          op: gte
+          value: 0.8
+        effect: manual_review
+        reason: OCR confidence is below 0.8 and needs human inspection
+      - id: name_extracted
+        severity: high
+        mode: assert
+        condition:
+          field: dependencies.ocr_service.extracted_name
+          op: exists
+        effect: retry
+        reason: OCR did not return an extracted name
+
+  - name: authenticity
+    description: Post-OCR integrity checks.
+    rules:
+      - id: number_matches_ocr
+        severity: medium
+        mode: assert
+        condition:
+          field: dependencies.ocr_service.document_number
+          op: eq
+          value: "$input.document.number"
+        effect: manual_review
+        reason: OCR number does not match the submitted document number

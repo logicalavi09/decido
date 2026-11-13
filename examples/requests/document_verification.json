@@ -1,0 +1,16 @@
+{
+  "workflow": "document_verification",
+  "input": {
+    "document": {
+      "type": "passport",
+      "number": "P1234567",
+      "expires_on": "2030-01-01",
+      "issuing_country": "US"
+    },
+    "owner": {
+      "name": "Katherine Johnson",
+      "email": "kj@example.com"
+    },
+    "file_ref": "s3://demo-bucket/doc.pdf"
+  }
+}

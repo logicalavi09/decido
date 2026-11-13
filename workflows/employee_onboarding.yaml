@@ -1,0 +1,130 @@
+name: employee_onboarding
+version: "1.0.0"
+description: >-
+  Employee onboarding across consent, background verification and provisioning.
+  Demonstrates role-based manual review and dependency-driven decisions.
+input_schema:
+  type: object
+  additionalProperties: false
+  required: [candidate, start_date, documents]
+  properties:
+    candidate:
+      type: object
+      additionalProperties: false
+      required: [name, email, role, consent_background_check]
+      properties:
+        name:
+          type: string
+          minLength: 2
+        email:
+          type: string
+          pattern: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+        role:
+          type: string
+          enum: [engineer, analyst, manager, director, vp]
+        consent_background_check:
+          type: boolean
+    start_date:
+      type: string
+      pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    documents:
+      type: array
+      minItems: 1
+      items:
+        type: object
+        required: [type, reference]
+        properties:
+          type: {type: string}
+          reference: {type: string}
+    equipment_requested:
+      type: boolean
+retry:
+  workflow_backoff_seconds: 3
+  max_workflow_attempts: 4
+stages:
+  - name: consent
+    description: Legal and completeness checks happen before any external call.
+    rules:
+      - id: background_consent
+        severity: critical
+        mode: assert
+        condition:
+          field: candidate.consent_background_check
+          op: eq
+          value: true
+        effect: reject
+        reason: Candidate has not consented to a background check
+      - id: start_date_present
+        severity: medium
+        mode: assert
+        condition:
+          field: start_date
+          op: exists
+        effect: reject
+        reason: Start date is required to schedule onboarding
+      - id: identity_documents
+        severity: medium
+        mode: assert
+        condition:
+          field: documents
+          op: len_gte
+          value: 1
+        effect: manual_review
+        reason: No identity documents were supplied
+
+  - name: background_verification
+    description: Simulated background check provider.
+    dependency:
+      connector: background_check
+      operation: verify
+      timeout_ms: 400
+      retry:
+        max_attempts: 4
+        base_delay_ms: 5
+        max_delay_ms: 60
+      failure_policy: manual_review
+      result:
+        status: clear
+        candidate: "$input.candidate.name"
+        provider: sim-background-check
+    rules:
+      - id: clear_background
+        severity: high
+        mode: assert
+        condition:
+          field: dependencies.background_check.status
+          op: eq
+          value: clear
+        effect: reject
+        reason: Background check did not return a clear result
+      - id: senior_role_review
+        severity: medium
+        mode: guard
+        condition:
+          field: candidate.role
+          op: in
+          value: [director, vp]
+        effect: manual_review
+        reason: Senior roles require HR sign-off after background verification
+
+  - name: provisioning
+    description: Access and equipment provisioning rules.
+    rules:
+      - id: supported_role
+        severity: low
+        mode: assert
+        condition:
+          field: candidate.role
+          op: in
+          value: [engineer, analyst, manager, director, vp]
+        effect: reject
+        reason: Role is not in the provisioning catalogue
+      - id: equipment_guard
+        severity: low
+        mode: guard
+        condition:
+          field: equipment_requested
+          op: eq
+          value: true
+        effect: manual_review
+        reason: Equipment requests require IT approval
