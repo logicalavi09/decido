@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <meta
+      name="description"
+      content="Decido is a configurable workflow decision engine with hash-chained audit, counterfactual explanations and safe configuration change analysis."
+    />
+    <title>Decido — Decisions you can defend</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="/assets/fonts/bricolage-700.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/assets/fonts/manrope-400.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#view">Skip to content</a>
+    <div class="page-grain" aria-hidden="true"></div>
+    <div class="shell">
+      <aside class="rail">
+        <a class="brand" href="#/overview" aria-label="Decido overview">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none">
+              <path d="M7 5h10c6 0 10 4.3 10 11s-4 11-10 11H7V5Z" stroke="currentColor" stroke-width="2.4" />
+              <path d="M12 10.5h5c2.6 0 4.4 2.1 4.4 5.5s-1.8 5.5-4.4 5.5h-5v-11Z" fill="currentColor" />
+            </svg>
+          </span>
+          <span class="brand-word">decido</span>
+        </a>
+
+        <nav class="rail-nav" aria-label="Primary">
+          <a class="rail-link" href="#/overview" data-route="overview">
+            <span class="rail-icon" data-icon="pulse" aria-hidden="true"></span>
+            <span>Overview</span>
+          </a>
+          <a class="rail-link" href="#/runs" data-route="runs">
+            <span class="rail-icon" data-icon="list" aria-hidden="true"></span>
+            <span>Decisions</span>
+          </a>
+          <a class="rail-link" href="#/workflows" data-route="workflows">
+            <span class="rail-icon" data-icon="layers" aria-hidden="true"></span>
+            <span>Workflows</span>
+          </a>
+          <a class="rail-link" href="#/governance" data-route="governance">
+            <span class="rail-icon" data-icon="shield" aria-hidden="true"></span>
+            <span>Change lab</span>
+          </a>
+        </nav>
+
+        <div class="rail-foot">
+          <button class="rail-help" id="command-trigger-rail" type="button" aria-label="Open command palette">
+            <span data-icon="command" aria-hidden="true"></span>
+            <span class="rail-foot-label">Command</span>
+          </button>
+          <span class="rail-version" title="UI build">v1.1</span>
+        </div>
+      </aside>
+
+      <div class="workspace">
+        <header class="topbar">
+          <div class="topbar-context">
+            <span class="topbar-product">Decido</span>
+            <span class="topbar-slash" aria-hidden="true">/</span>
+            <span id="crumb-view">Overview</span>
+          </div>
+          <div class="topbar-actions">
+            <button class="command-trigger" id="command-trigger" type="button" aria-keyshortcuts="Meta+K Control+K">
+              <span data-icon="search" aria-hidden="true"></span>
+              <span class="command-trigger-label">Search or jump</span>
+              <kbd>⌘K</kbd>
+            </button>
+            <span class="api-state" id="api-state" role="status" aria-atomic="true">
+              <span class="api-dot"></span>
+              <span class="api-label">Connecting</span>
+            </span>
+            <button class="btn btn-primary btn-sm" id="new-run-btn" type="button">
+              <span data-icon="plus" aria-hidden="true"></span>
+              New decision
+            </button>
+          </div>
+        </header>
+
+        <main id="view" tabindex="-1" aria-live="polite">
+          <div class="boot">
+            <div class="boot-mark" aria-hidden="true"></div>
+            <p>Loading the decision ledger</p>
+          </div>
+        </main>
+
+        <footer class="page-foot">
+          <span>Config-driven decisions, pinned to the rules that made them.</span>
+          <span class="foot-links">
+            <a href="/docs" target="_blank" rel="noreferrer">API docs</a>
+            <a href="#/governance">Change lab</a>
+          </span>
+        </footer>
+      </div>
+    </div>
+
+    <div id="toast-root" class="toast-root" aria-live="polite" aria-atomic="false"></div>
+    <script type="module" src="/js/app.js"></script>
+  </body>
+</html>

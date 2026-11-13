@@ -45,6 +45,7 @@ python3 -m venv .venv
 .venv/bin/uvicorn app.main:app --reload --port 8000
 ```
 
+Web console: <http://localhost:8000>
 OpenAPI/Swagger UI: <http://localhost:8000/docs>
 
 Or with Make:
@@ -67,6 +68,29 @@ Run the scripted demo (server must be running):
 ```bash
 ./examples/demo.sh
 ```
+
+---
+
+## Web console
+
+`web/` is a build-free, same-origin operations console served by FastAPI. It uses
+vanilla ES modules, self-hosted fonts and the live API — no Node build step, CDN or
+separate frontend server.
+
+- **Overview** — decision wire, outcome mix, approval rate and workflow library.
+- **Decisions** — searchable ledger; open any run for decision evidence, rule traces,
+  counterfactuals, manual-review actions and the verified audit stream.
+- **Workflows** — inspect stages, dependencies, conditions, transitions, snapshot hashes
+  and lint findings without reading raw YAML.
+- **Change lab** — run lint, preview an atomic reload with an ETag diff, then shadow-test
+  candidate rule changes against real inputs.
+- **Demo ledger** — one click seeds approved, manual-review, rejected and failed outcomes
+  so the audit and impact views are immediately explorable.
+- **Keyboard** — `⌘K` / `Ctrl+K` opens the command palette; the console also supports
+  reduced motion, visible focus, responsive rail navigation and dismissible toasts.
+
+The API mounts `web/` at `/` only when the directory exists, so the JSON API and
+`/docs` remain unchanged.
 
 ---
 
@@ -349,7 +373,7 @@ See [CONFIGURATION.md](CONFIGURATION.md) for the full configuration reference.
 
 ## Tests
 
-`pytest` covers 86 unit and scenario tests:
+`pytest` covers 88 unit and scenario tests:
 
 - happy path across all five configured workflows
 - fast-track branch routing and manual-review resolution
@@ -384,7 +408,8 @@ app/
   services/       orchestration, retry scheduler, shadow impact evaluator
   infra/          SQLite repository, config loader, dependency adapters
 workflows/        five YAML workflow definitions
-tests/            86 unit and scenario tests
+web/              build-free operations console (HTML/CSS/ES modules)
+tests/            88 unit and scenario tests
 examples/         request payloads + demo script
 ARCHITECTURE.md   design, data flow, trade-offs, scaling
 CONFIGURATION.md  configuration reference and how to change rules/workflows

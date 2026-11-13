@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Any, AsyncIterator
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.api.routes import router
 from app.core.config import Settings
@@ -69,6 +71,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.scheduler = scheduler
 
     app.include_router(router)
+
+    web_dir = Path(__file__).resolve().parents[1] / "web"
+    if web_dir.is_dir():
+        app.mount("/", StaticFiles(directory=web_dir, html=True), name="web")
 
     @app.exception_handler(AppError)
     async def handle_app_error(request: Request, exc: AppError) -> JSONResponse:
