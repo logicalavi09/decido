@@ -11,9 +11,7 @@ Decido evaluates business requests against YAML-defined workflows, rules, thresh
 
 ## Demo
 
-<video src="docs/demo/demo.mp4" controls width="100%"></video>
-
-[▶ Open demo video](docs/demo/demo.mp4)
+https://github.com/user-attachments/assets/e0712cc7-9142-4cfc-b88a-e226d4601b05
 
 ---
 
