@@ -9,6 +9,12 @@ Decido evaluates business requests against YAML-defined workflows, rules, thresh
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688)
 ![Tests](https://img.shields.io/badge/tests-88%20passing-brightgreen)
 
+## Demo
+
+<video src="docs/demo/demo.mp4" controls width="100%"></video>
+
+[▶ Open demo video](docs/demo/demo.mp4)
+
 ---
 
 ## Overview
